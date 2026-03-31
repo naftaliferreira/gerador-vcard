@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador de vCard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 350px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Gerador de vCard</h2>
+
+  <input type="text" id="nome" placeholder="Nome completo">
+  <input type="text" id="telefone" placeholder="Telefone (+55...)">
+  <input type="email" id="email" placeholder="Email">
+  <input type="text" id="empresa" placeholder="Empresa">
+  <input type="text" id="cargo" placeholder="Cargo">
+
+  <button onclick="gerarVCard()">Baixar vCard</button>
+</div>
+
+<script>
+function gerarVCard() {
+  const nome = document.getElementById('nome').value;
+  const telefone = document.getElementById('telefone').value;
+  const email = document.getElementById('email').value;
+  const empresa = document.getElementById('empresa').value;
+  const cargo = document.getElementById('cargo').value;
+
+  if (!nome || !telefone) {
+    alert('Nome e telefone são obrigatórios!');
+    return;
+  }
+
+  const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${nome}\nTEL:${telefone}\nEMAIL:${email}\nORG:${empresa}\nTITLE:${cargo}\nEND:VCARD`;
+
+  const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nome.replace(/\s+/g, '_') + '.vcf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
