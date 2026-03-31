@@ -2,95 +2,300 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gerador de vCard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --border: #2a2a2a;
+      --accent: #c8f060;
+      --accent-dim: #a8d040;
+      --text: #f0f0f0;
+      --muted: #666;
+      --input-bg: #1c1c1c;
+      --radius: 4px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
+      justify-content: center;
+      padding: 24px;
     }
 
-    .container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 350px;
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 70% 30%, rgba(200,240,96,0.05) 0%, transparent 70%);
+      pointer-events: none;
     }
 
-    h2 {
-      text-align: center;
-    }
-
-    input {
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
       width: 100%;
-      padding: 10px;
+      max-width: 420px;
+      padding: 40px;
+      position: relative;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      margin-bottom: 32px;
+    }
+
+    .header .label {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    .fields {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .field input {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      padding: 11px 14px;
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      width: 100%;
+    }
+
+    .field input::placeholder { color: #3a3a3a; }
+
+    .field input:focus {
+      border-color: var(--accent);
+      background: #1f1f1f;
+    }
+
+    .field.required label::after {
+      content: ' *';
+      color: var(--accent);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
       margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
     }
 
-    button {
+    .btn {
+      margin-top: 24px;
       width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      background: #007bff;
-      color: white;
+      padding: 14px;
+      background: var(--accent);
+      color: #0e0e0e;
       border: none;
-      border-radius: 5px;
+      border-radius: var(--radius);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       cursor: pointer;
-      font-size: 16px;
+      transition: background 0.2s, transform 0.1s;
+      position: relative;
+      overflow: hidden;
     }
 
-    button:hover {
-      background: #0056b3;
+    .btn:hover  { background: var(--accent-dim); }
+    .btn:active { transform: scale(0.99); }
+
+    .btn .icon {
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .feedback {
+      margin-top: 12px;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-align: center;
+      min-height: 16px;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feedback.visible { opacity: 1; }
+    .feedback.error   { color: #ff6b6b; }
+
+    .footer {
+      margin-top: 28px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 10px;
+      color: #333;
+      letter-spacing: 0.08em;
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Gerador de vCard</h2>
+<div class="card">
+  <div class="header">
+    <p class="label">Contato Digital</p>
+    <h1>Gerador<br>de vCard</h1>
+  </div>
 
-  <input type="text" id="nome" placeholder="Nome completo">
-  <input type="text" id="telefone" placeholder="Telefone (+55...)">
-  <input type="email" id="email" placeholder="Email">
-  <input type="text" id="empresa" placeholder="Empresa">
-  <input type="text" id="cargo" placeholder="Cargo">
+  <div class="fields">
+    <div class="field required">
+      <label>Nome Completo</label>
+      <input type="text" id="nome" placeholder="Ex: Maria Silva" autocomplete="name">
+    </div>
 
-  <button onclick="gerarVCard()">Baixar vCard</button>
+    <div class="field required">
+      <label>Telefone</label>
+      <input type="tel" id="telefone" placeholder="+55 31 99999-0000" autocomplete="tel">
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="nome@empresa.com" autocomplete="email">
+    </div>
+
+    <div class="field">
+      <label>Empresa</label>
+      <input type="text" id="empresa" placeholder="Nome da empresa" autocomplete="organization">
+    </div>
+
+    <div class="field">
+      <label>Cargo</label>
+      <input type="text" id="cargo" placeholder="Ex: Designer, Dev, CEO..." autocomplete="organization-title">
+    </div>
+  </div>
+
+  <button class="btn" onclick="gerarVCard()">
+    <span class="icon">↓</span> Baixar vCard
+  </button>
+
+  <p class="feedback" id="feedback"></p>
+
+  <p class="footer">Arquivo .vcf — compatível com iOS, Android e Outlook</p>
 </div>
 
 <script>
-function gerarVCard() {
-  const nome = document.getElementById('nome').value;
-  const telefone = document.getElementById('telefone').value;
-  const email = document.getElementById('email').value;
-  const empresa = document.getElementById('empresa').value;
-  const cargo = document.getElementById('cargo').value;
+  const campos = {
+    nome:     document.getElementById('nome'),
+    telefone: document.getElementById('telefone'),
+    email:    document.getElementById('email'),
+    empresa:  document.getElementById('empresa'),
+    cargo:    document.getElementById('cargo'),
+  };
 
-  if (!nome || !telefone) {
-    alert('Nome e telefone são obrigatórios!');
-    return;
+  const feedbackEl = document.getElementById('feedback');
+
+  function mostrarFeedback(msg, tipo = 'ok') {
+    feedbackEl.textContent = msg;
+    feedbackEl.className = `feedback visible ${tipo === 'erro' ? 'error' : ''}`;
+    setTimeout(() => feedbackEl.classList.remove('visible'), 3000);
   }
 
-  const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${nome}\nTEL:${telefone}\nEMAIL:${email}\nORG:${empresa}\nTITLE:${cargo}\nEND:VCARD`;
+  function gerarConteudoVCard({ nome, telefone, email, empresa, cargo }) {
+    const linhas = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `FN:${nome}`,
+      `TEL:${telefone}`,
+    ];
+    if (email)   linhas.push(`EMAIL:${email}`);
+    if (empresa) linhas.push(`ORG:${empresa}`);
+    if (cargo)   linhas.push(`TITLE:${cargo}`);
+    linhas.push('END:VCARD');
+    return linhas.join('\r\n');
+  }
 
-  const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
+  function baixarArquivo(conteudo, nomeArquivo) {
+    const blob = new Blob([conteudo], { type: 'text/vcard;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const link = Object.assign(document.createElement('a'), {
+      href: url,
+      download: nomeArquivo,
+    });
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = nome.replace(/\s+/g, '_') + '.vcf';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  function gerarVCard() {
+    const dados = Object.fromEntries(
+      Object.entries(campos).map(([k, el]) => [k, el.value.trim()])
+    );
 
-  URL.revokeObjectURL(url);
-}
+    if (!dados.nome || !dados.telefone) {
+      mostrarFeedback('Nome e telefone são obrigatórios.', 'erro');
+      return;
+    }
+
+    const vcard       = gerarConteudoVCard(dados);
+    const nomeArquivo = dados.nome.replace(/\s+/g, '_') + '.vcf';
+
+    baixarArquivo(vcard, nomeArquivo);
+    mostrarFeedback(`✓ ${nomeArquivo} gerado com sucesso!`);
+  }
+
+  // Enter key support
+  Object.values(campos).forEach(input =>
+    input.addEventListener('keydown', e => e.key === 'Enter' && gerarVCard())
+  );
 </script>
 
 </body>
